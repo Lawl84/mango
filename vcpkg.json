@@ -2,5 +2,7 @@
   {
 	"name": "water-shapes",
 	"version": "1.0",
-	"dependencies": ["sdl2"]
+	"dependencies": [
+        "sdl2"
+    ]
 }

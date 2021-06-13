@@ -7,8 +7,12 @@ project(mango)
 
 find_package(SDL2 CONFIG REQUIRED)
 
-add_executable(mango src/main.cpp)
+add_executable(mango
+    src/main.cpp
+)
 
-target_link_libraries(mango PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(mango PRIVATE
+    SDL2::SDL2 SDL2::SDL2main
+)
 
 set_property(TARGET mango PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
