@@ -6,9 +6,13 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(mango)
 
 find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL_ttf REQUIRED)
 
 add_executable(mango
     src/main.cpp
+	src/mango.cpp
+	src/mango.h
+	src/utils.h
 )
 
 target_link_libraries(mango PRIVATE
