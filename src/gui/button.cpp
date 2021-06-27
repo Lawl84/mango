@@ -6,13 +6,9 @@ gui::Button::Button(const char* title, const SDL_Rect& rect, const std::function
 void gui::Button::draw()
 {
 	SDL_RenderFillRect(m_rend, &m_rect);
-	/*SDL_Surface* surface = TTF_RenderText_Solid(m_font, m_title, SDL_Color{ 0, 0, 0 });
+	SDL_Surface* surface = TTF_RenderText_Blended(m_font, m_title, SDL_Color{ 0, 0, 0 });
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(m_rend, surface);
-	int texW = 0;
-	int texH = 0;
-	SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-	SDL_Rect dstrect = { 0, 0, texW, texH };
-	SDL_RenderCopy(m_rend, texture, NULL, &dstrect);*/
+	SDL_RenderCopy(m_rend, texture, NULL, &m_rect);
 }
 
 bool gui::Button::check_click(int mx, int my)

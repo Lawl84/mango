@@ -43,16 +43,17 @@ void Mango::mainloop()
     bool running = true;
     bool mouse_left = false;
 
-    TTF_Font* main_font = TTF_OpenFont("Montserrat-SemiBold.ttf", 21);
+    TTF_Font* main_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 21);
     SDL_Event evt;
 
     SDL_GetWindowSize(m_window, &window_w, &window_h);
     
-    gui::Canvas canvas({});
-    canvas.adjust_to_window(window_w, window_h);
+    gui::Canvas canvas({ (int)((0.1 * window_w) / 2), (int)((0.2 * window_h) / 2), (int)(0.9 * window_w), (int)(0.8 * window_h) }, {255, 255, 255});
+
+    canvas.center(window_w, window_h);
     SDL_Texture* canv_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, canvas.rect().w, canvas.rect().h);
 
-    SDL_Color user_main_color = { 255, 255, 255 };
+    SDL_Color user_main_color = { 0, 0, 0 };
 
     SDL_Color white{ 255, 255, 255 };
 
@@ -65,17 +66,20 @@ void Mango::mainloop()
     SDL_Rect b1 = {
         50,
         50,
-        50,
+        500,
         50
     };
 
-    gui::Button button("Button", b1, [&]() {std::cout << "Lmao\n"; }, m_rend, main_font);
+    gui::Button button("Select Color", b1, [&]() {std::cout << "Lmao\n"; }, m_rend, main_font);
+    std::vector<gui::Button> buttons;
+    buttons.emplace_back(button);
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
     while (running)
     {
         SDL_GetWindowSize(m_window, &window_w, &window_h);
+        canvas.center(window_w, window_h);
 
         while (SDL_PollEvent(&evt))
         {
@@ -84,31 +88,61 @@ void Mango::mainloop()
             case SDL_QUIT:
                 running = false;
                 break;
+
             case SDL_MOUSEBUTTONDOWN:
             {
                 int mx, my;
                 SDL_GetMouseState(&mx, &my);
+                bool button_click = false;
 
-                if (utils::collides(mx, my, canvas.rect()))
+                for (gui::Button& b : buttons)
+                {
+                    if (b.check_click(mx, my))
+                    {
+                        button_click = true;
+                        b.handle_button_click(evt.button);
+                        break;
+                    }
+                        
+                }
+
+                if (utils::collides(mx, my, canvas.rect()) && !button_click)
+                {
+                    mouse_left = true;
+                    int x = mx - canvas.rect().x;
+                    int y = my - canvas.rect().y;
+
+                    texbuf[y * canvas.rect().w + x] = utils::hex(user_main_color);
+                }
+            } break;
+
+            case SDL_MOUSEBUTTONUP:
+                if (evt.button.button == SDL_BUTTON_LEFT)
+                    mouse_left = false; break;
+            
+            case SDL_MOUSEMOTION:
+                
+                int mx, my;
+                SDL_GetMouseState(&mx, &my);
+                if (mouse_left && utils::collides(mx, my, canvas.rect()))
                 {
                     int x = mx - canvas.rect().x;
                     int y = my - canvas.rect().y;
 
-                    texbuf[y * canvas.rect().w + x] = utils::hex({ 255, 255, 255 });
+                    texbuf[y * canvas.rect().w + x] = utils::hex(user_main_color);
                 }
-            } break;
             }
         } 
 
         SDL_RenderClear(m_rend);
-        SDL_SetRenderDrawColor(m_rend, WHITE);
+        SDL_SetRenderDrawColor(m_rend, canvas.color().r, canvas.color().g, canvas.color().b, canvas.color().a);
 
         SDL_RenderFillRect(m_rend, &canvas.rect());
          
         SDL_UpdateTexture(canv_tex, 0, texbuf, canvas.rect().w * sizeof(uint32_t));
         SDL_RenderCopy(m_rend, canv_tex, nullptr, &canvas.rect());
 
-        button.draw();
+        //button.draw();
         SDL_SetRenderDrawColor(m_rend, BG_COLOR);
         
         SDL_RenderPresent(m_rend);
