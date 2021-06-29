@@ -7,6 +7,7 @@
 #include "gui/pen.h"
 #include "utils.h"
 #include <map>
+#include <thread>
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR 6, 71, 69, 255
@@ -28,6 +29,14 @@ Mango::Mango()
     SDL_RenderPresent(m_rend);
 }
 
+int resizing_event_watcher(void* data, SDL_Event* event) {
+    if (event->type == SDL_WINDOWEVENT &&
+        event->window.event == SDL_WINDOWEVENT_RESIZED) {
+        SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
+    }
+    return 0;
+}
+
 Mango::~Mango()
 {
     SDL_DestroyRenderer(m_rend);
@@ -43,7 +52,7 @@ void Mango::mainloop()
     bool running = true;
     bool mouse_left = false;
 
-    TTF_Font* main_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 21);
+    TTF_Font* main_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 14);
     SDL_Event evt;
 
     SDL_GetWindowSize(m_window, &window_w, &window_h);
@@ -54,25 +63,32 @@ void Mango::mainloop()
     SDL_Texture* canv_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, canvas.rect().w, canvas.rect().h);
 
     SDL_Color user_main_color = { 0, 0, 0 };
+    SDL_Color colorbuf;
 
     SDL_Color white{ 255, 255, 255 };
 
     SDL_Color bg_color{ BG_COLOR };
 
     
+    
 
     gui::Pen p(m_rend, user_main_color);
 
-    SDL_Rect b1 = {
-        50,
-        50,
-        500,
-        50
+
+    int bx, by;
+    TTF_SizeText(main_font, " Select Color ", &bx, &by);
+    
+    SDL_Point b1 = {
+        0,
+        10,
     };
 
-    gui::Button button("Select Color", b1, [&]() {std::cout << "Lmao\n"; }, m_rend, main_font);
+
+    
+    gui::Button select_color(" Select Color ", b1, [&]() { p.pen_select_color(); }, m_rend, main_font);
+
     std::vector<gui::Button> buttons;
-    buttons.emplace_back(button);
+    buttons.emplace_back(select_color);
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
@@ -80,6 +96,7 @@ void Mango::mainloop()
     {
         SDL_GetWindowSize(m_window, &window_w, &window_h);
         canvas.center(window_w, window_h);
+        
 
         while (SDL_PollEvent(&evt))
         {
@@ -112,7 +129,7 @@ void Mango::mainloop()
                     int x = mx - canvas.rect().x;
                     int y = my - canvas.rect().y;
 
-                    texbuf[y * canvas.rect().w + x] = utils::hex(user_main_color);
+                    texbuf[y * canvas.rect().w + x] = utils::hex(p.color());
                 }
             } break;
 
@@ -129,12 +146,14 @@ void Mango::mainloop()
                     int x = mx - canvas.rect().x;
                     int y = my - canvas.rect().y;
 
-                    texbuf[y * canvas.rect().w + x] = utils::hex(user_main_color);
+                    texbuf[y * canvas.rect().w + x] = utils::hex(p.color());
                 }
             }
         } 
 
         SDL_RenderClear(m_rend);
+        SDL_AddEventWatch(resizing_event_watcher, m_window);
+
         SDL_SetRenderDrawColor(m_rend, canvas.color().r, canvas.color().g, canvas.color().b, canvas.color().a);
 
         SDL_RenderFillRect(m_rend, &canvas.rect());
@@ -142,9 +161,10 @@ void Mango::mainloop()
         SDL_UpdateTexture(canv_tex, 0, texbuf, canvas.rect().w * sizeof(uint32_t));
         SDL_RenderCopy(m_rend, canv_tex, nullptr, &canvas.rect());
 
-        //button.draw();
+        utils::draw_buttons(buttons);
         SDL_SetRenderDrawColor(m_rend, BG_COLOR);
         
         SDL_RenderPresent(m_rend);
     }
+    SDL_Quit();
 }

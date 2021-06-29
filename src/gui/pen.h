@@ -13,7 +13,7 @@ namespace gui
 
 		void draw(SDL_Point p0);
 		void set_color(SDL_Color color) { m_color = color; }
-		SDL_Color pen_select_color(SDL_Color* queried_color);
+		void pen_select_color();
 		SDL_Color color() { return m_color; }
 	};
 };
