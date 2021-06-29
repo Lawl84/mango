@@ -31,8 +31,20 @@ namespace utils
 	inline void render_text(SDL_Renderer* rend, const SDL_Rect& rect, const char* text, TTF_Font* font)
 	{
 		SDL_Surface* surface = TTF_RenderText_Blended(font, text, SDL_Color{ 0, 0, 0 });
-		SDL_Texture* texture = SDL_CreateTextureFromSurface(rend, surface);
-		SDL_RenderCopy(rend, texture, nullptr, &rect);
+
+        SDL_Texture* texture{ 0 };
+
+        if (surface)
+    		texture = SDL_CreateTextureFromSurface(rend, surface);
+
+        if (texture)
+    		SDL_RenderCopy(rend, texture, nullptr, &rect);
+
+        if (surface)
+            SDL_FreeSurface(surface);
+
+        if (texture)
+            SDL_DestroyTexture(texture);
 	}
 
 }

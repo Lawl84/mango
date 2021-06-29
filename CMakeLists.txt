@@ -20,6 +20,8 @@ src/gui/canvas.cpp
 src/gui/canvas.h
 src/gui/pen.cpp
 src/gui/pen.h
+src/gui/textentry.h
+src/gui/textentry.cpp
 )
 
 

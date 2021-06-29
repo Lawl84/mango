@@ -32,9 +32,9 @@ void gui::Pen::pen_select_color()
 	
 	int r, g, b;
 
-	auto& destroy = [&]() { running = false;};
+	auto destroy = [&]() { running = false;};
 
-	auto& select = [&]() {
+	auto select = [&]() {
 		m_color = { 0, 0, 0 };
 		running = false;
 		r = atoi(textentries[0].m_text.c_str());
