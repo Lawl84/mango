@@ -7,6 +7,7 @@
 #include "gui/button.h"
 #include <map>
 #include <SDL_ttf.h>
+#include <iostream>
 
 namespace utils
 {
@@ -45,6 +46,47 @@ namespace utils
 
         if (texture)
             SDL_DestroyTexture(texture);
+	}
+
+	inline void color_adjust(int& r, int& g, int& b)
+	{
+		if (r > 255) r = 255;
+		if (r < 0) r = 0;
+
+		if (g > 255) g = 255;
+		if (g < 0) g = 0;
+
+		if (b > 255) b = 255;
+		if (b < 0) b = 0;
+
+	}
+
+	inline void label(SDL_Renderer* rend, const char* text, TTF_Font* font, const SDL_Point& point)
+	{
+		int x, y;
+		TTF_SizeText(font, text, &x, &y);
+
+		SDL_Surface* surface = TTF_RenderText_Blended(font, text, SDL_Color{ 255, 255, 255 });
+		SDL_Texture* texture{ 0 };
+		SDL_Rect rect = {
+			point.x,
+			point.y,
+			x,
+			y
+		};
+
+		if (surface)
+			texture = SDL_CreateTextureFromSurface(rend, surface);
+
+		if (texture)
+			SDL_RenderCopy(rend, texture, nullptr, &rect);
+
+		if (surface)
+			SDL_FreeSurface(surface);
+
+		if (texture)
+			SDL_DestroyTexture(texture);
+
 	}
 
 }

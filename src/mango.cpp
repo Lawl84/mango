@@ -11,6 +11,7 @@
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR 6, 71, 69, 255
+#define BLACK 0, 0, 0, 0
 
 Mango::Mango()
     :m_window(nullptr), m_rend(nullptr)
@@ -69,7 +70,19 @@ void Mango::mainloop()
 
     SDL_Color bg_color{ BG_COLOR };
 
-    
+    SDL_Rect color_square = {
+        70,
+        734,
+        49,
+        49
+    };
+
+    SDL_Rect inner_color_square = {
+        70,
+        735,
+        48,
+        48
+    };
     
 
     gui::Pen p(m_rend, user_main_color);
@@ -78,14 +91,14 @@ void Mango::mainloop()
     int bx, by;
     TTF_SizeText(main_font, " Select Color ", &bx, &by);
     
-    SDL_Point b1 = {
+    SDL_Point select_color_point = {
         0,
         10,
     };
 
 
     
-    gui::Button select_color(" Select Color ", b1, [&]() { p.pen_select_color(); }, m_rend, main_font);
+    gui::Button select_color(" Select Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
 
     std::vector<gui::Button> buttons;
     buttons.emplace_back(select_color);
@@ -162,6 +175,13 @@ void Mango::mainloop()
         SDL_RenderCopy(m_rend, canv_tex, nullptr, &canvas.rect());
 
         utils::draw_buttons(buttons);
+        utils::label(m_rend, "Color: ", main_font, { 10, 750 });
+
+        SDL_SetRenderDrawColor(m_rend, BLACK);
+        SDL_RenderDrawRect(m_rend, &color_square);
+
+        SDL_SetRenderDrawColor(m_rend, p.color().r, p.color().g, p.color().b, 255);
+        SDL_RenderFillRect(m_rend, &inner_color_square);
         SDL_SetRenderDrawColor(m_rend, BG_COLOR);
         
         SDL_RenderPresent(m_rend);

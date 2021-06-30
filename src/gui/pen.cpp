@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include <sstream>
 #include "../utils.h"
 #include "textentry.h"
 
@@ -17,7 +18,9 @@ void gui::Pen::draw(SDL_Point p0)
 void gui::Pen::pen_select_color()
 {
 	bool running = true;
-	SDL_Window* sm_window = SDL_CreateWindow("Select Color", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 300, 300, SDL_WINDOW_SHOWN);
+	std::stringstream window_title_ss;
+	window_title_ss << "Current RGB: (" << (int)m_color.r << ", " << (int)m_color.g << ", " << (int)m_color.b << ")";
+	SDL_Window* sm_window = SDL_CreateWindow(window_title_ss.str().c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 300, 300, SDL_WINDOW_SHOWN);
 	SDL_Renderer* sm_rend = SDL_CreateRenderer(sm_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	TTF_Font* sm_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 14);
 	SDL_SetWindowGrab(sm_window, SDL_TRUE);
@@ -40,6 +43,7 @@ void gui::Pen::pen_select_color()
 		r = atoi(textentries[0].m_text.c_str());
 		g = atoi(textentries[1].m_text.c_str());
 		b = atoi(textentries[2].m_text.c_str());
+		utils::color_adjust(r, g, b);
 		m_color = { (Uint8)r, (Uint8)g, (Uint8)b };
 	};
 
@@ -85,9 +89,17 @@ void gui::Pen::pen_select_color()
 					if (selected_entry->m_text.length() < 3 && i || selected_entry->m_text.length() < 3 && evt.text.text == "0")
 						selected_entry->m_text += evt.text.text;
 
-
 				}
 
+			}
+
+			if (evt.type == SDL_KEYDOWN)
+			{
+				switch (evt.key.keysym.sym)
+				{
+					case SDLK_BACKSPACE:
+						selected_entry->m_text = selected_entry->m_text.substr(0, selected_entry->m_text.length() - 1);
+				}
 			}
 
 		}
