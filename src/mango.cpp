@@ -3,11 +3,16 @@
 #include <iostream>
 #include "gui/button.h"
 #include <SDL_ttf.h>
+#include <SDL_image.h>
 #include "gui/canvas.h"
 #include "gui/pen.h"
 #include "utils.h"
 #include <map>
 #include <thread>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR 6, 71, 69, 255
@@ -37,6 +42,7 @@ int resizing_event_watcher(void* data, SDL_Event* event) {
     }
     return 0;
 }
+
 
 Mango::~Mango()
 {
@@ -86,22 +92,24 @@ void Mango::mainloop()
     
 
     gui::Pen p(m_rend, user_main_color);
-
-
-    int bx, by;
-    TTF_SizeText(main_font, " Select Color ", &bx, &by);
     
     SDL_Point select_color_point = {
         0,
         10,
     };
 
+    SDL_Point select_thickness_point = {
+        150,
+        10
+    };
 
     
-    gui::Button select_color(" Select Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
+    gui::Button select_color(" Change Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
+    gui::Button select_thickness(" Change Thickness ", select_thickness_point, [&]() { p.pen_select_thickness(); }, m_rend, main_font);
 
     std::vector<gui::Button> buttons;
     buttons.emplace_back(select_color);
+    buttons.emplace_back(select_thickness);
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
@@ -142,7 +150,7 @@ void Mango::mainloop()
                     int x = mx - canvas.rect().x;
                     int y = my - canvas.rect().y;
 
-                    texbuf[y * canvas.rect().w + x] = utils::hex(p.color());
+                    utils::draw_with_thickness(texbuf, p, canvas, x, y, p.thickness());
                 }
             } break;
 
@@ -159,7 +167,7 @@ void Mango::mainloop()
                     int x = mx - canvas.rect().x;
                     int y = my - canvas.rect().y;
 
-                    texbuf[y * canvas.rect().w + x] = utils::hex(p.color());
+                    utils::draw_with_thickness(texbuf, p, canvas, x, y, p.thickness());
                 }
             }
         } 

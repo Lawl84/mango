@@ -5,12 +5,24 @@
 #include <string>
 #include <vector>
 #include "gui/button.h"
+#include "gui/canvas.h"
+#include "gui/pen.h"
 #include <map>
 #include <SDL_ttf.h>
 #include <iostream>
+#include <algorithm>
+
+#define HEXPEN hex(pen.color())
 
 namespace utils
 {
+	struct CirclePoint
+	{
+		int xval;
+		int yval;
+		int arrayval;
+	};
+
 	inline bool collides(int mx, int my, const SDL_Rect& rect)
 	{
 		return (mx >= rect.x && mx <= rect.x + rect.w) && (my >= rect.y && my <= rect.y + rect.h);
@@ -87,6 +99,88 @@ namespace utils
 		if (texture)
 			SDL_DestroyTexture(texture);
 
+	}
+
+	inline void thickness_adjust(int& thickness)
+	{
+		if (thickness > 100) thickness = 100;
+		if (thickness < 1) thickness = 1;
+	}
+
+	inline bool valid_point(gui::Canvas& canvas, CirclePoint c)
+	{
+		return c.arrayval >= 0 && c.arrayval < canvas.rect().w * canvas.rect().h && c.xval < canvas.rect().w && c.xval >= 0;
+	}
+
+	inline void draw_with_thickness(uint32_t* arr, gui::Pen& pen, gui::Canvas& canvas, int xc, int yc, int r)
+	{
+		std::map<int, std::vector<int>> circ_points;
+
+		int wid = canvas.rect().w;
+
+		auto draw_circle = [&](int xc, int yc, int x, int y, int r)
+		{
+			CirclePoint c1, c2, c3, c4, c5, c6, c7, c8;
+			c1 = { xc + x, yc + y, xc + x + (yc + y) * wid };
+			c2 = { xc - x, yc + y, xc - x + (yc + y) * wid };
+			c3 = { xc + x, yc - y, xc + x + (yc - y) * wid };
+			c4 = { xc - x, yc - y, xc - x + (yc - y) * wid };
+			c5 = { xc + y, yc + x, xc + y + (yc + x) * wid };
+			c6 = { xc - y, yc + x, xc - y + (yc + x) * wid };
+			c7 = { xc + y, yc - x, xc + y + (yc - x) * wid };
+			c8 = { xc - y, yc - x, xc - y + (yc - x) * wid };
+			 
+			int min = std::min(c6.xval, c8.xval);
+			int max = std::max(c1.xval, c5.xval);
+
+
+			std::vector<CirclePoint> circles = { c1, c2, c3, c4, c5, c6, c7, c8 };
+
+			for (CirclePoint c : circles)
+			{
+				if (valid_point(canvas, c))
+				{
+					arr[c.arrayval] = HEXPEN;
+					circ_points[c.yval].emplace_back(c.xval);
+				}
+				else if (c.xval > wid)
+					circ_points[c.yval].emplace_back(wid);
+				else if (c.xval <= 0)
+					circ_points[c.yval].emplace_back(0);
+			}
+
+		};
+
+		int x = 0, y = r, d = 3 - (2 * r);
+		draw_circle(xc, yc, x, y, r);
+
+		while (y >= x)
+		{
+			++x;
+			if (d > 0)
+			{
+				y--;
+				d = d + 4 * (x - y);
+			}
+
+			else
+				d = d + 4 * x + 6;
+
+			draw_circle(xc, yc, x, y, r);
+
+		}
+
+		for (auto& [y, values] : circ_points)
+		{
+			int max = *std::max_element(values.begin(), values.end());
+			int min = *std::min_element(values.begin(), values.end());
+
+			for (int i = min; i < max; i++)
+			{
+				if (valid_point(canvas, CirclePoint{i, NULL, i + y * canvas.rect().w}))
+					arr[i + y * wid] = HEXPEN;
+			}
+		}
 	}
 
 }

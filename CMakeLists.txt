@@ -9,6 +9,9 @@ project(mango)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(sdl2-image CONFIG REQUIRED)
 find_package(sdl2-ttf CONFIG REQUIRED)
+find_package(OpenCV CONFIG REQUIRED)
+
+
 add_executable(mango 
 src/main.cpp
 src/mango.cpp
@@ -25,6 +28,7 @@ src/gui/textentry.cpp
 )
 
 
-target_link_libraries(mango PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image  SDL2::SDL2_ttf)
+target_link_libraries(mango PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image  SDL2::SDL2_ttf
+opencv_ml opencv_dnn opencv_core opencv_flann opencv_highgui)
 
 set_property(TARGET mango PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

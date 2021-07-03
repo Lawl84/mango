@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <thread>
-
+#include "gui/canvas.h"
 
 class Mango
 {
