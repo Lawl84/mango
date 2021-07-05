@@ -23,6 +23,68 @@ namespace utils
 		int arrayval;
 	};
 
+	struct Circle
+	{
+		int radius;
+		int xc;
+		int yc;
+		
+
+	private:
+		void drawCircle(std::map<int, std::vector<int>>& circ_points, SDL_Renderer* rend, int xc, int yc, int x, int y)
+		{
+			SDL_RenderDrawPoint(rend, xc + x, yc + y);
+			circ_points[yc + y].emplace_back(xc + x);
+			SDL_RenderDrawPoint(rend, xc - x, yc + y);
+			circ_points[yc + y].emplace_back(xc - x);
+			SDL_RenderDrawPoint(rend, xc + x, yc - y);
+			circ_points[yc - y].emplace_back(xc + x);
+			SDL_RenderDrawPoint(rend, xc - x, yc - y);
+			circ_points[yc - y].emplace_back(xc - x);
+			SDL_RenderDrawPoint(rend, xc + y, yc + x);
+			circ_points[yc + x].emplace_back(xc + y);
+			SDL_RenderDrawPoint(rend, xc - y, yc + x);
+			circ_points[yc + x].emplace_back(xc - y);
+			SDL_RenderDrawPoint(rend, xc + y, yc - x);
+			circ_points[yc - x].emplace_back(xc + y);
+			SDL_RenderDrawPoint(rend, xc - y, yc - x);
+			circ_points[yc - x].emplace_back(xc - y);
+		}
+	public:
+		void draw(SDL_Renderer* rend)
+		{
+			std::map<int, std::vector<int>> circ_points;
+			int x = 0, y = this->radius;
+			int d = 3 - 2 * this->radius;
+			drawCircle(circ_points, rend, this->xc, this->yc, x, y);
+			while (y >= x)
+			{
+				x++;
+				if (d > 0)
+				{
+					y--;
+					d = d + 4 * (x - y) + 10;
+				}
+				else
+					d = d + 4 * x + 6;
+
+				drawCircle(circ_points, rend, this->xc, this->yc, x, y);
+			}
+			for (auto& [y, values] : circ_points)
+			{
+				int max = *std::max_element(values.begin(), values.end());
+				int min = *std::min_element(values.begin(), values.end());
+
+				for (int i = min; i < max; i++)
+				{
+					SDL_RenderDrawPoint(rend, i, y); 
+				}
+					
+			}
+		}
+
+	};
+
 	inline bool collides(int mx, int my, const SDL_Rect& rect)
 	{
 		return (mx >= rect.x && mx <= rect.x + rect.w) && (my >= rect.y && my <= rect.y + rect.h);
@@ -129,10 +191,6 @@ namespace utils
 			c6 = { xc - y, yc + x, xc - y + (yc + x) * wid };
 			c7 = { xc + y, yc - x, xc + y + (yc - x) * wid };
 			c8 = { xc - y, yc - x, xc - y + (yc - x) * wid };
-			 
-			int min = std::min(c6.xval, c8.xval);
-			int max = std::max(c1.xval, c5.xval);
-
 
 			std::vector<CirclePoint> circles = { c1, c2, c3, c4, c5, c6, c7, c8 };
 
