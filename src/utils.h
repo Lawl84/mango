@@ -241,4 +241,36 @@ namespace utils
         }
     }
 
+    inline void draw_circle(SDL_Renderer* rend, int xc, int yc, int r)
+    {
+        auto draw_circle_sub = [](SDL_Renderer* rend, int xc, int yc, int x, int y)
+        {
+            SDL_RenderDrawPoint(rend, xc + x, yc + y);
+            SDL_RenderDrawPoint(rend, xc - x, yc + y);
+            SDL_RenderDrawPoint(rend, xc + x, yc - y);
+            SDL_RenderDrawPoint(rend, xc - x, yc - y);
+            SDL_RenderDrawPoint(rend, xc + y, yc + x);
+            SDL_RenderDrawPoint(rend, xc - y, yc + x);
+            SDL_RenderDrawPoint(rend, xc + y, yc - x);
+            SDL_RenderDrawPoint(rend, xc - y, yc - x);
+        };;
+
+        int x = 0, y = r;
+        int d = 3 - 2 * r;
+        draw_circle_sub(rend, xc, yc, x, y);
+        while (y >= x)
+        {
+            x++;
+            if (d > 0)
+            {
+                y--;
+                d = d + 4 * (x - y) + 10;
+            }
+            else
+                d = d + 4 * x + 6;
+
+            draw_circle_sub(rend, xc, yc, x, y);
+        }
+    }
+
 }

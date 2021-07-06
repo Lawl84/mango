@@ -210,6 +210,8 @@ void gui::Pen::pen_select_color()
 void gui::Pen::pen_select_thickness()
 {
     bool running = true;
+    bool mouse_left = false;
+    std::string tt;
     std::stringstream window_title_ss;
     window_title_ss << "Current Thickness: " << m_thickness << " px";
     SDL_Window* t_window = SDL_CreateWindow(window_title_ss.str().c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 300, 300, SDL_WINDOW_SHOWN);
@@ -225,15 +227,10 @@ void gui::Pen::pen_select_thickness()
 
     SDL_Event evt;
 
-    gui::TextEntry thickness_entry(t_rend, { 95, 100, tx * 3, ty }, t_font);
-    gui::TextEntry* selected_entry = nullptr;
-
-    std::vector<gui::TextEntry> textentries;
-
     auto destroy = [&]() { running = false; };
     auto select = [&]()
     {
-        thickness = atoi(textentries[0].m_text.c_str());
+        thickness = atoi(tt.c_str());
         utils::thickness_adjust(thickness);
         m_thickness = thickness;
         running = false;
@@ -241,7 +238,19 @@ void gui::Pen::pen_select_thickness()
     gui::Button cancel_button(" Cancel ", { 10, 270 }, destroy, t_rend, t_font);
     gui::Button save_button("  Save  ", { 220, 270 }, select, t_rend, t_font);
 
-    textentries.emplace_back(thickness_entry);
+    SDL_Rect slider_t = {
+        100,
+        109,
+        150,
+        4
+    };
+
+    utils::Circle* selected_circle{ nullptr };
+
+    std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 111 } };
+
+    float t;
+
     while (running)
     {
         while (SDL_PollEvent(&evt))
@@ -254,52 +263,81 @@ void gui::Pen::pen_select_thickness()
                 cancel_button.handle_button_click(evt.button);
                 save_button.handle_button_click(evt.button);
 
-                for (gui::TextEntry& t : textentries)
+                if (evt.button.button == SDL_BUTTON_LEFT)
                 {
-                    if (utils::collides(x, y, t.rect()))
+                    for (auto& circle : circles)
                     {
-                        selected_entry = &t;
-                        break;
+                        if (utils::collides(x, y, { circle.xc - circle.radius, circle.yc - circle.radius, 2 * circle.radius, 2 * circle.radius }))
+                        {
+                            selected_circle = &circle;
+                            mouse_left = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            if (evt.type == SDL_TEXTINPUT)
+            if (evt.type == SDL_MOUSEMOTION)
             {
-                if (selected_entry)
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+
+                if (mouse_left)
                 {
-                    int i = atoi(evt.text.text);
-                    if (selected_entry->m_text.length() < 3 && i || selected_entry->m_text.length() < 3 && evt.text.text[0] == '0')
-                        selected_entry->m_text += evt.text.text;
+                    selected_circle->xc = x;
+
+                    if (selected_circle->xc < slider_t.x)
+                    {
+                        selected_circle->xc = slider_t.x;
+                    }
+
+                    else if (selected_circle->xc > slider_t.x + slider_t.w)
+                    {
+                        selected_circle->xc = slider_t.x + slider_t.w;
+                    }
                 }
             }
 
-            if (evt.type == SDL_KEYDOWN)
+            if (evt.type == SDL_MOUSEBUTTONUP)
             {
-                switch (evt.key.keysym.sym)
+                if (evt.button.button == SDL_BUTTON_LEFT)
                 {
-                case SDLK_BACKSPACE:
-                    selected_entry->m_text = selected_entry->m_text.substr(0, selected_entry->m_text.length() - 1);
+                    mouse_left = false;
                 }
             }
         }
+
+        utils::Circle* selected_circle{ nullptr };
+
         SDL_RenderClear(t_rend);
         SDL_SetRenderDrawColor(t_rend, 217, 217, 217, 255);
 
         cancel_button.draw();
         save_button.draw();
-        thickness_entry.draw();
+
+        t = ((float)(circles[0].xc - slider_t.x) / (float)slider_t.w) * 50;
+
+        tt = std::to_string((int)std::floor(t));
 
         utils::render_text(t_rend, { 10, 100, tx * 10, ty }, "Thickness:", t_font);
 
-        for (gui::TextEntry& txt : textentries)
+        utils::render_text(t_rend, { 260, 100, tx * (int)tt.length(), ty }, tt.c_str(), t_font);
+
+        SDL_RenderFillRect(t_rend, &slider_t);
+
+        SDL_SetRenderDrawColor(t_rend, SLIDER_CIRCLE_COLOR);
+
+        for (auto& circle : circles)
         {
-            txt.draw();
-            if (selected_entry)
-                txt.render(txt.m_text.c_str());
+            circle.draw(t_rend);
         }
 
-        
+        SDL_SetRenderDrawColor(t_rend, BLACK);
+
+        thickness = atoi(tt.c_str());
+
+        if (thickness > 0)
+            utils::draw_circle(t_rend, 150, 200, thickness);
 
         SDL_SetRenderDrawColor(t_rend, WHITE);
 
