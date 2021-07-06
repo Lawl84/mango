@@ -86,21 +86,13 @@ void gui::Pen::pen_select_color()
 		50
 	};
 
-	utils::Circle slider_circle_r{ 5, 100, 21 };
-	utils::Circle slider_circle_g{ 5, 100, 111 };
-	utils::Circle slider_circle_b{ 5, 100, 201 };
-
 	float r, g, b;
 
 	std::string str_r, str_g, str_b;
 
-	utils::Circle* selected_circle = &slider_circle_r;
+	utils::Circle* selected_circle{ nullptr };
 
-	std::vector<utils::Circle*> circles;
-
-	circles.emplace_back(&slider_circle_r);
-	circles.emplace_back(&slider_circle_g);
-	circles.emplace_back(&slider_circle_b);
+	std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 21 }, utils::Circle{ 5, 100, 111 }, utils::Circle{ 5, 100, 201 } };
 
 	SDL_Event evt;
 	bool mouse_left = false;
@@ -117,11 +109,11 @@ void gui::Pen::pen_select_color()
 				SDL_GetMouseState(&x, &y);
 				if (evt.button.button == SDL_BUTTON_LEFT)
 				{
-					for (utils::Circle* circle : circles)
+					for (auto& circle : circles)
 					{
-						if (utils::collides(x, y, { circle->xc - circle->radius, circle->yc - circle->radius, 2 * circle->radius, 2 * circle->radius }))
+						if (utils::collides(x, y, { circle.xc - circle.radius, circle.yc - circle.radius, 2 * circle.radius, 2 * circle.radius }))
 						{
-							selected_circle = circle;
+							selected_circle = &circle;
 							mouse_left = true;
 							break;
 						}
@@ -169,15 +161,14 @@ void gui::Pen::pen_select_color()
 		utils::render_text(sm_rend, { 10, 10, tx * 4, ty }, "Red:", sm_font);
 		utils::render_text(sm_rend, { 10, 100, tx * 6, ty }, "Green:", sm_font);
 		utils::render_text(sm_rend, { 10, 190, tx * 5, ty }, "Blue:", sm_font);
-
 		
 		SDL_RenderFillRect(sm_rend, &slider_r);
 		SDL_RenderFillRect(sm_rend, &slider_g);
 		SDL_RenderFillRect(sm_rend, &slider_b);
 
-		r = ((float)(slider_circle_r.xc - slider_r.x) / (float)slider_r.w) * 255;
-		g = ((float)(slider_circle_g.xc - slider_g.x) / (float)slider_g.w) * 255;
-		b = ((float)(slider_circle_b.xc - slider_b.x) / (float)slider_b.w) * 255;
+		r = ((float)(circles[0].xc - slider_r.x) / (float)slider_r.w) * 255;
+		g = ((float)(circles[1].xc - slider_g.x) / (float)slider_g.w) * 255;
+		b = ((float)(circles[2].xc - slider_b.x) / (float)slider_b.w) * 255;
 
 		str_r = std::to_string((int)std::floor(r));
 		str_g = std::to_string((int)std::floor(g));
@@ -193,9 +184,9 @@ void gui::Pen::pen_select_color()
 
 		SDL_SetRenderDrawColor(sm_rend, SLIDER_CIRCLE_COLOR);
 
-		for (utils::Circle* circle : circles)
+		for (auto& circle : circles)
 		{
-			circle->draw(sm_rend);
+			circle.draw(sm_rend);
 		}
 
 		SDL_SetRenderDrawColor(sm_rend, in_r, in_g, in_b, 255);
