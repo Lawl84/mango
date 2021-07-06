@@ -48,8 +48,12 @@ void gui::Pen::pen_select_color()
     };
 
     gui::Button cancel_button(" Cancel ", { 10, 270 }, destroy, sm_rend, sm_font);
-
     gui::Button save_button("  Save  ", { 225, 270 }, select, sm_rend, sm_font);
+
+    std::vector <gui::Button> buttons = { cancel_button, save_button };
+
+    SDL_Texture* cancel_tex = cancel_button.draw();
+    SDL_Texture* save_tex = save_button.draw();
 
     SDL_Rect slider_r = {
         100,
@@ -155,9 +159,16 @@ void gui::Pen::pen_select_color()
 
         SDL_RenderClear(sm_rend);
         SDL_SetRenderDrawColor(sm_rend, 217, 217, 217, 255);
-        cancel_button.draw();
-        save_button.draw();
 
+        for (auto& button : buttons)
+        {
+            SDL_RenderFillRect(sm_rend, &button.rect());
+        }
+
+        SDL_RenderCopy(sm_rend, save_tex, nullptr, &save_button.rect());
+        SDL_RenderCopy(sm_rend, cancel_tex, nullptr, &cancel_button.rect());
+
+        
 
         utils::render_text(sm_rend, { 10, 10, tx * 4, ty }, "Red:", sm_font);
         utils::render_text(sm_rend, { 10, 100, tx * 6, ty }, "Green:", sm_font);
@@ -235,8 +246,14 @@ void gui::Pen::pen_select_thickness()
         m_thickness = thickness;
         running = false;
     };
+
     gui::Button cancel_button(" Cancel ", { 10, 270 }, destroy, t_rend, t_font);
     gui::Button save_button("  Save  ", { 220, 270 }, select, t_rend, t_font);
+
+    std::vector<gui::Button> buttons = { cancel_button, save_button };
+
+    SDL_Texture* cancel_tex = cancel_button.draw();
+    SDL_Texture* save_tex = save_button.draw();
 
     SDL_Rect slider_t = {
         100,
@@ -312,8 +329,14 @@ void gui::Pen::pen_select_thickness()
         SDL_RenderClear(t_rend);
         SDL_SetRenderDrawColor(t_rend, 217, 217, 217, 255);
 
-        cancel_button.draw();
-        save_button.draw();
+        for (auto& button : buttons)
+        {
+            SDL_RenderFillRect(t_rend, &button.rect());
+        }
+
+        SDL_RenderCopy(t_rend, cancel_tex, nullptr, &cancel_button.rect());
+        SDL_RenderCopy(t_rend, save_tex, nullptr, &save_button.rect());
+
 
         t = ((float)(circles[0].xc - slider_t.x) / (float)slider_t.w) * 50;
 

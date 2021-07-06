@@ -20,13 +20,9 @@ namespace gui
 
         bool check_click(int mx, int my);
         bool handle_button_click(const SDL_MouseButtonEvent& btn);
-        void draw();
+        SDL_Texture* draw();
         void call() { m_func(); }
         SDL_Rect rect() { return m_rect; }
-        bool operator ==(const Button& other)
-        {
-            return other.m_point.x == m_point.x && other.m_point.y == other.m_point.y;
-        }
     };
 
 };

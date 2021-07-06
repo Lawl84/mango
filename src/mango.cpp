@@ -111,6 +111,9 @@ void Mango::mainloop()
     buttons.emplace_back(select_color);
     buttons.emplace_back(select_thickness);
 
+    SDL_Texture* select_colorTex = select_color.draw();
+    SDL_Texture* select_thickTex = select_thickness.draw();
+
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
     while (running)
@@ -182,7 +185,15 @@ void Mango::mainloop()
         SDL_UpdateTexture(canv_tex, 0, texbuf, canvas.rect().w * sizeof(uint32_t));
         SDL_RenderCopy(m_rend, canv_tex, nullptr, &canvas.rect());
 
-        utils::draw_buttons(buttons);
+        for (auto& button : buttons)
+        {
+            SDL_RenderFillRect(m_rend, &button.rect());
+        }
+
+        SDL_RenderCopy(m_rend, select_colorTex, nullptr, &select_color.rect());
+
+        SDL_RenderCopy(m_rend, select_thickTex, nullptr, &select_thickness.rect());
+
         utils::label(m_rend, "Color: ", main_font, { 10, 750 });
 
         SDL_SetRenderDrawColor(m_rend, BLACK);
@@ -194,5 +205,10 @@ void Mango::mainloop()
         
         SDL_RenderPresent(m_rend);
     }
+
+    SDL_DestroyTexture(select_colorTex);
+    SDL_DestroyTexture(select_thickTex);
+
     SDL_Quit();
+    
 }

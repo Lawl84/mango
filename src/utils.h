@@ -95,13 +95,6 @@ namespace utils
         return ((color.r & 0xff) << 16) + ((color.g & 0xff) << 8) + (color.b & 0xff);
     }
 
-    inline void draw_buttons(std::vector<gui::Button>& buttons)
-    {
-        for (gui::Button& button : buttons)
-        {
-            button.draw();
-        }
-    }
 
     inline void render_text(SDL_Renderer* rend, const SDL_Rect& rect, const char* text, TTF_Font* font)
     {
@@ -165,7 +158,7 @@ namespace utils
 
     inline void thickness_adjust(int& thickness)
     {
-        if (thickness > 100) thickness = 100;
+        if (thickness > 50) thickness = 100;
         if (thickness < 1) thickness = 1;
     }
 

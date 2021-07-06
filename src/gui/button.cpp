@@ -15,12 +15,18 @@ gui::Button::Button(const char* title, const SDL_Point& point, const std::functi
 }
 
 
-void gui::Button::draw()
+SDL_Texture* gui::Button::draw()
 {
     SDL_RenderFillRect(m_rend, &m_rect);
     SDL_Surface* surface = TTF_RenderText_Blended(m_font, m_title, SDL_Color{ 0, 0, 0 });
     SDL_Texture* texture = SDL_CreateTextureFromSurface(m_rend, surface);
-    SDL_RenderCopy(m_rend, texture, nullptr, &m_rect);
+
+    if (surface)
+    {
+        texture = SDL_CreateTextureFromSurface(m_rend, surface);
+        SDL_FreeSurface(surface);
+    }
+    return texture;
 }
 
 
