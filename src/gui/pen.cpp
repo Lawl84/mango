@@ -12,7 +12,7 @@
 #define WHITE 255, 255, 255, 255
 #define BLACK 0, 0, 0, 255
 #define SLIDER_CIRCLE_COLOR 158, 52, 235, 255
-
+#define BG_COLOR 150, 150, 150, 255
 
 void gui::Pen::draw(SDL_Point p0)
 {
@@ -145,6 +145,19 @@ void gui::Pen::pen_select_color()
                         selected_circle->xc = slider_b.x + slider_b.w;
                     }
                 }
+
+                for (auto& button : buttons)
+                {
+                    if (utils::collides(x, y, button.rect()))
+                    {
+                        button.m_color = { 201, 199, 199 };
+                    }
+
+                    else
+                    {
+                        button.m_color = { 255, 255, 255 };
+                    }
+                }
             }
 
             if (evt.type == SDL_MOUSEBUTTONUP)
@@ -158,10 +171,11 @@ void gui::Pen::pen_select_color()
         
 
         SDL_RenderClear(sm_rend);
-        SDL_SetRenderDrawColor(sm_rend, 217, 217, 217, 255);
+        SDL_SetRenderDrawColor(sm_rend, 255, 255, 255, 255);
 
         for (auto& button : buttons)
         {
+            SDL_SetRenderDrawColor(sm_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
             SDL_RenderFillRect(sm_rend, &button.rect());
         }
 
@@ -174,6 +188,7 @@ void gui::Pen::pen_select_color()
         utils::render_text(sm_rend, { 10, 100, tx * 6, ty }, "Green:", sm_font);
         utils::render_text(sm_rend, { 10, 190, tx * 5, ty }, "Blue:", sm_font);
 
+        SDL_SetRenderDrawColor(sm_rend, 255, 255, 255, 255);
         
         SDL_RenderFillRect(sm_rend, &slider_r);
         SDL_RenderFillRect(sm_rend, &slider_g);
@@ -210,7 +225,7 @@ void gui::Pen::pen_select_color()
 
         SDL_RenderDrawRect(sm_rend, &current_color_indicator_outline);
 
-        SDL_SetRenderDrawColor(sm_rend, WHITE);
+        SDL_SetRenderDrawColor(sm_rend, BG_COLOR);
         SDL_RenderPresent(sm_rend);
     }
     
@@ -313,6 +328,19 @@ void gui::Pen::pen_select_thickness()
                         selected_circle->xc = slider_t.x + slider_t.w;
                     }
                 }
+
+                for (auto& button : buttons)
+                {
+                    if (utils::collides(x, y, button.rect()))
+                    {
+                        button.m_color = { 201, 199, 199 };
+                    }
+
+                    else
+                    {
+                        button.m_color = { 255, 255, 255 };
+                    }
+                }
             }
 
             if (evt.type == SDL_MOUSEBUTTONUP)
@@ -331,6 +359,7 @@ void gui::Pen::pen_select_thickness()
 
         for (auto& button : buttons)
         {
+            SDL_SetRenderDrawColor(t_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
             SDL_RenderFillRect(t_rend, &button.rect());
         }
 
@@ -345,6 +374,8 @@ void gui::Pen::pen_select_thickness()
         utils::render_text(t_rend, { 10, 100, tx * 10, ty }, "Thickness:", t_font);
 
         utils::render_text(t_rend, { 260, 100, tx * (int)tt.length(), ty }, tt.c_str(), t_font);
+
+        SDL_SetRenderDrawColor(t_rend, WHITE);
 
         SDL_RenderFillRect(t_rend, &slider_t);
 
@@ -362,7 +393,7 @@ void gui::Pen::pen_select_thickness()
         if (thickness > 0)
             utils::draw_circle(t_rend, 150, 200, thickness);
 
-        SDL_SetRenderDrawColor(t_rend, WHITE);
+        SDL_SetRenderDrawColor(t_rend, BG_COLOR);
 
         SDL_RenderPresent(t_rend);
     }

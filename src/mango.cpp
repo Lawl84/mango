@@ -15,7 +15,7 @@
 
 
 #define WHITE 255, 255, 255, 255
-#define BG_COLOR 6, 71, 69, 255
+#define BG_COLOR_MAIN 120, 120, 120, 255
 #define BLACK 0, 0, 0, 0
 
 Mango::Mango()
@@ -72,10 +72,6 @@ void Mango::mainloop()
     SDL_Color user_main_color = { 0, 0, 0 };
     SDL_Color colorbuf;
 
-    SDL_Color white{ 255, 255, 255 };
-
-    SDL_Color bg_color{ BG_COLOR };
-
     SDL_Rect color_square = {
         70,
         734,
@@ -103,16 +99,23 @@ void Mango::mainloop()
         10
     };
 
+    SDL_Point save_image_point = {
+        300,
+        10
+    };
     
     gui::Button select_color(" Change Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
     gui::Button select_thickness(" Change Thickness ", select_thickness_point, [&]() { p.pen_select_thickness(); }, m_rend, main_font);
+    gui::Button save_image_button(" Save Image ", save_image_point, [&]() { save_image(canvas.rect().w, canvas.rect().h); }, m_rend, main_font);
 
     std::vector<gui::Button> buttons;
     buttons.emplace_back(select_color);
     buttons.emplace_back(select_thickness);
+    buttons.emplace_back(save_image_button);
 
     SDL_Texture* select_colorTex = select_color.draw();
     SDL_Texture* select_thickTex = select_thickness.draw();
+    SDL_Texture* save_imageTex = save_image_button.draw();
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
@@ -181,6 +184,19 @@ void Mango::mainloop()
 
                     utils::draw_with_thickness(texbuf, p, canvas, x, y, p.thickness());
                 }
+
+                for (auto& button : buttons)
+                {
+                    if (utils::collides(mx, my, button.rect()))
+                    {
+                        button.m_color = { 201, 199, 199 };
+                    }
+                    
+                    else
+                    {
+                        button.m_color = { 255, 255, 255 };
+                    }
+                }
             }
         } 
 
@@ -196,12 +212,13 @@ void Mango::mainloop()
 
         for (auto& button : buttons)
         {
+            SDL_SetRenderDrawColor(m_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
             SDL_RenderFillRect(m_rend, &button.rect());
         }
 
         SDL_RenderCopy(m_rend, select_colorTex, nullptr, &select_color.rect());
-
         SDL_RenderCopy(m_rend, select_thickTex, nullptr, &select_thickness.rect());
+        SDL_RenderCopy(m_rend, save_imageTex, nullptr, &save_image_button.rect());
 
         utils::label(m_rend, "Color: ", main_font, { 10, 750 });
 
@@ -210,7 +227,7 @@ void Mango::mainloop()
 
         SDL_SetRenderDrawColor(m_rend, p.color().r, p.color().g, p.color().b, 255);
         SDL_RenderFillRect(m_rend, &inner_color_square);
-        SDL_SetRenderDrawColor(m_rend, BG_COLOR);
+        SDL_SetRenderDrawColor(m_rend, BG_COLOR_MAIN);
         
         SDL_RenderPresent(m_rend);
     }

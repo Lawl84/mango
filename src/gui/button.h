@@ -13,9 +13,10 @@ namespace gui
         SDL_Renderer* m_rend;
         const char* m_title;
         TTF_Font* m_font;
+        
 
     public:
-
+        SDL_Color m_color = { 255, 255, 255 };
         Button(const char* title, const SDL_Point& point, const std::function<void(void)>& on_click, SDL_Renderer* rend, TTF_Font* font);
 
         bool check_click(int mx, int my);
