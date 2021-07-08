@@ -33,12 +33,12 @@ void gui::Pen::pen_select_color()
 
     int tx, ty;
     TTF_SizeText(sm_font, "a", &tx, &ty);
-    
+
     int in_r = 0;
     int in_g = 0;
     int in_b = 0;
 
-    auto destroy = [&]() { running = false;};
+    auto destroy = [&]() { running = false; };
 
     auto select = [&]() {
         m_color = { 0, 0, 0 };
@@ -97,7 +97,7 @@ void gui::Pen::pen_select_color()
 
     utils::Circle* selected_circle{ nullptr };
 
-    std::vector<utils::Circle> circles{ utils::Circle(5, 100, 21), utils::Circle(5, 100, 111), utils::Circle(5, 100, 201) };
+    std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 21 }, utils::Circle{ 5, 100, 111 }, utils::Circle{ 5, 100, 201 } };
 
     SDL_Event evt;
     bool mouse_left = false;
@@ -133,16 +133,16 @@ void gui::Pen::pen_select_color()
 
                 if (mouse_left)
                 {
-                    selected_circle->move(x - selected_circle->xc(), 0);
+                    selected_circle->set_xc(x);
 
                     if (selected_circle->xc() < slider_b.x)
                     {
-                        selected_circle->move(slider_b.x - selected_circle->xc(), 0);
+                        selected_circle->set_xc(slider_b.x);
                     }
 
-                    if (selected_circle->xc() > slider_b.x + slider_b.w)
+                    else if (selected_circle->xc() > slider_b.x + slider_b.w)
                     {
-                        selected_circle->move(slider_b.x + slider_b.w - selected_circle->xc(), 0);
+                        selected_circle->set_xc(slider_b.x + slider_b.w);
                     }
                 }
 
@@ -164,11 +164,11 @@ void gui::Pen::pen_select_color()
             {
                 if (evt.button.button == SDL_BUTTON_LEFT)
                 {
-                    mouse_left = false; 
+                    mouse_left = false;
                 }
             }
         }
-        
+
 
         SDL_RenderClear(sm_rend);
         SDL_SetRenderDrawColor(sm_rend, 255, 255, 255, 255);
@@ -182,14 +182,14 @@ void gui::Pen::pen_select_color()
         SDL_RenderCopy(sm_rend, save_tex, nullptr, &save_button.rect());
         SDL_RenderCopy(sm_rend, cancel_tex, nullptr, &cancel_button.rect());
 
-        
+
 
         utils::render_text(sm_rend, { 10, 10, tx * 4, ty }, "Red:", sm_font);
         utils::render_text(sm_rend, { 10, 100, tx * 6, ty }, "Green:", sm_font);
         utils::render_text(sm_rend, { 10, 190, tx * 5, ty }, "Blue:", sm_font);
 
         SDL_SetRenderDrawColor(sm_rend, 255, 255, 255, 255);
-        
+
         SDL_RenderFillRect(sm_rend, &slider_r);
         SDL_RenderFillRect(sm_rend, &slider_g);
         SDL_RenderFillRect(sm_rend, &slider_b);
@@ -228,7 +228,7 @@ void gui::Pen::pen_select_color()
         SDL_SetRenderDrawColor(sm_rend, BG_COLOR);
         SDL_RenderPresent(sm_rend);
     }
-    
+
     SDL_DestroyRenderer(sm_rend);
     SDL_DestroyWindow(sm_window);
 }
@@ -316,15 +316,16 @@ void gui::Pen::pen_select_thickness()
 
                 if (mouse_left)
                 {
-                    selected_circle->move(x - selected_circle->xc(), 0);
+                    selected_circle->set_xc(x);
 
                     if (selected_circle->xc() < slider_t.x)
                     {
-                        selected_circle->move(slider_t.x - selected_circle->xc(), 0);
+                        selected_circle->set_xc(slider_t.x);
                     }
-                    if (selected_circle->xc() > slider_t.x + slider_t.w)
+
+                    else if (selected_circle->xc() > slider_t.x + slider_t.w)
                     {
-                        selected_circle->move(slider_t.x + slider_t.w - selected_circle->xc(), 0);
+                        selected_circle->set_xc(slider_t.x + slider_t.w);
                     }
                 }
 

@@ -39,6 +39,10 @@ namespace utils
         int yc() { return m_yc; }
         int radius() { return m_radius; }
 
+        void set_xc(int xc) { m_xc = xc; }
+        void set_yc(int yc) { m_yc = yc; }
+        void set_radius(int radius) { m_radius = radius; }
+
     private:
         int m_radius;
         int m_xc;

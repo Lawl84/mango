@@ -63,8 +63,8 @@ void Mango::mainloop()
     SDL_Event evt;
 
     SDL_GetWindowSize(m_window, &window_w, &window_h);
-    
-    gui::Canvas canvas({ (int)((0.1 * window_w) / 2), (int)((0.2 * window_h) / 2), (int)(0.9 * window_w), (int)(0.8 * window_h) }, {255, 255, 255});
+
+    gui::Canvas canvas({ (int)((0.1 * window_w) / 2), (int)((0.2 * window_h) / 2), (int)(0.9 * window_w), (int)(0.8 * window_h) }, { 255, 255, 255 });
 
     canvas.center(window_w, window_h);
     SDL_Texture* canv_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, canvas.rect().w, canvas.rect().h);
@@ -85,10 +85,10 @@ void Mango::mainloop()
         48,
         48
     };
-    
+
 
     gui::Pen p(m_rend, user_main_color);
-    
+
     SDL_Point select_color_point = {
         0,
         10,
@@ -103,7 +103,7 @@ void Mango::mainloop()
         300,
         10
     };
-    
+
     gui::Button select_color(" Change Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
     gui::Button select_thickness(" Change Thickness ", select_thickness_point, [&]() { p.pen_select_thickness(); }, m_rend, main_font);
     gui::Button save_image_button(" Save Image ", save_image_point, [&]() { save_image(canvas.rect().w, canvas.rect().h); }, m_rend, main_font);
@@ -123,7 +123,7 @@ void Mango::mainloop()
     {
         SDL_GetWindowSize(m_window, &window_w, &window_h);
         canvas.center(window_w, window_h);
-        
+
 
         while (SDL_PollEvent(&evt))
         {
@@ -147,7 +147,7 @@ void Mango::mainloop()
                         b.handle_button_click(evt.button);
                         break;
                     }
-                        
+
                 }
 
                 if (utils::collides(mx, my, canvas.rect()) && !button_click)
@@ -172,9 +172,9 @@ void Mango::mainloop()
                     break;
                 }
             } break;
-            
+
             case SDL_MOUSEMOTION:
-                
+
                 int mx, my;
                 SDL_GetMouseState(&mx, &my);
                 if (mouse_left && utils::collides(mx, my, canvas.rect()))
@@ -191,14 +191,14 @@ void Mango::mainloop()
                     {
                         button.m_color = { 201, 199, 199 };
                     }
-                    
+
                     else
                     {
                         button.m_color = { 255, 255, 255 };
                     }
                 }
             }
-        } 
+        }
 
         SDL_RenderClear(m_rend);
         SDL_AddEventWatch(resizing_event_watcher, m_window);
@@ -206,7 +206,7 @@ void Mango::mainloop()
         SDL_SetRenderDrawColor(m_rend, canvas.color().r, canvas.color().g, canvas.color().b, canvas.color().a);
 
         SDL_RenderFillRect(m_rend, &canvas.rect());
-         
+
         SDL_UpdateTexture(canv_tex, 0, texbuf, canvas.rect().w * sizeof(uint32_t));
         SDL_RenderCopy(m_rend, canv_tex, nullptr, &canvas.rect());
 
@@ -228,7 +228,7 @@ void Mango::mainloop()
         SDL_SetRenderDrawColor(m_rend, p.color().r, p.color().g, p.color().b, 255);
         SDL_RenderFillRect(m_rend, &inner_color_square);
         SDL_SetRenderDrawColor(m_rend, BG_COLOR_MAIN);
-        
+
         SDL_RenderPresent(m_rend);
     }
 
@@ -268,4 +268,3 @@ void Mango::save_image(int w, int h)
 
     cv::imwrite("out.png", image);
 }
-
