@@ -97,7 +97,7 @@ void gui::Pen::pen_select_color()
 
     utils::Circle* selected_circle{ nullptr };
 
-    std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 21 }, utils::Circle{ 5, 100, 111 }, utils::Circle{ 5, 100, 201 } };
+    std::vector<utils::Circle> circles{ utils::Circle(5, 100, 21), utils::Circle(5, 100, 111), utils::Circle(5, 100, 201) };
 
     SDL_Event evt;
     bool mouse_left = false;
@@ -116,7 +116,7 @@ void gui::Pen::pen_select_color()
                 {
                     for (auto& circle : circles)
                     {
-                        if (utils::collides(x, y, { circle.xc - circle.radius, circle.yc - circle.radius, 2 * circle.radius, 2 * circle.radius }))
+                        if (utils::collides(x, y, { circle.xc() - circle.radius(), circle.yc() - circle.radius(), 2 * circle.radius(), 2 * circle.radius() }))
                         {
                             selected_circle = &circle;
                             mouse_left = true;
@@ -133,16 +133,16 @@ void gui::Pen::pen_select_color()
 
                 if (mouse_left)
                 {
-                    selected_circle->xc = x;
+                    selected_circle->move(x - selected_circle->xc(), 0);
 
-                    if (selected_circle->xc < slider_b.x)
+                    if (selected_circle->xc() < slider_b.x)
                     {
-                        selected_circle->xc = slider_b.x;
+                        selected_circle->move(slider_b.x - selected_circle->xc(), 0);
                     }
 
-                    else if (selected_circle->xc > slider_b.x + slider_b.w)
+                    if (selected_circle->xc() > slider_b.x + slider_b.w)
                     {
-                        selected_circle->xc = slider_b.x + slider_b.w;
+                        selected_circle->move(slider_b.x + slider_b.w - selected_circle->xc(), 0);
                     }
                 }
 
@@ -194,9 +194,9 @@ void gui::Pen::pen_select_color()
         SDL_RenderFillRect(sm_rend, &slider_g);
         SDL_RenderFillRect(sm_rend, &slider_b);
 
-        r = ((float)(circles[0].xc - slider_r.x) / (float)slider_r.w) * 255;
-        g = ((float)(circles[1].xc - slider_g.x) / (float)slider_g.w) * 255;
-        b = ((float)(circles[2].xc - slider_b.x) / (float)slider_b.w) * 255;
+        r = ((float)(circles[0].xc() - slider_r.x) / (float)slider_r.w) * 255;
+        g = ((float)(circles[1].xc() - slider_g.x) / (float)slider_g.w) * 255;
+        b = ((float)(circles[2].xc() - slider_b.x) / (float)slider_b.w) * 255;
 
         str_r = std::to_string((int)std::floor(r));
         str_g = std::to_string((int)std::floor(g));
@@ -299,7 +299,7 @@ void gui::Pen::pen_select_thickness()
                 {
                     for (auto& circle : circles)
                     {
-                        if (utils::collides(x, y, { circle.xc - circle.radius, circle.yc - circle.radius, 2 * circle.radius, 2 * circle.radius }))
+                        if (utils::collides(x, y, { circle.xc() - circle.radius(), circle.yc() - circle.radius(), 2 * circle.radius(), 2 * circle.radius() }))
                         {
                             selected_circle = &circle;
                             mouse_left = true;
@@ -316,16 +316,15 @@ void gui::Pen::pen_select_thickness()
 
                 if (mouse_left)
                 {
-                    selected_circle->xc = x;
+                    selected_circle->move(x - selected_circle->xc(), 0);
 
-                    if (selected_circle->xc < slider_t.x)
+                    if (selected_circle->xc() < slider_t.x)
                     {
-                        selected_circle->xc = slider_t.x;
+                        selected_circle->move(slider_t.x - selected_circle->xc(), 0);
                     }
-
-                    else if (selected_circle->xc > slider_t.x + slider_t.w)
+                    if (selected_circle->xc() > slider_t.x + slider_t.w)
                     {
-                        selected_circle->xc = slider_t.x + slider_t.w;
+                        selected_circle->move(slider_t.x + slider_t.w - selected_circle->xc(), 0);
                     }
                 }
 
@@ -367,7 +366,7 @@ void gui::Pen::pen_select_thickness()
         SDL_RenderCopy(t_rend, save_tex, nullptr, &save_button.rect());
 
 
-        t = ((float)(circles[0].xc - slider_t.x) / (float)slider_t.w) * 50;
+        t = ((float)(circles[0].xc() - slider_t.x) / (float)slider_t.w) * 50;
 
         tt = std::to_string((int)std::floor(t));
 

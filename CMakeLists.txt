@@ -17,6 +17,7 @@ src/main.cpp
 src/mango.cpp
 src/mango.h
 src/utils.h
+src/utils.cpp
 src/gui/button.cpp
 src/gui/button.h
 src/gui/canvas.cpp
