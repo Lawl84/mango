@@ -22,7 +22,7 @@ namespace gui
         bool handle_button_click(const SDL_MouseButtonEvent& btn);
         SDL_Texture* draw();
         void call() { m_func(); }
-        SDL_Rect rect() { return m_rect; }
+        SDL_Rect& rect() { return m_rect; }
     };
 
 };

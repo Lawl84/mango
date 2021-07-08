@@ -13,4 +13,6 @@ public:
     ~Mango();
 
     void mainloop();
+
+    void save_image(int w, int h);
 };

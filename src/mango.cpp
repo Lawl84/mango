@@ -160,6 +160,15 @@ void Mango::mainloop()
             case SDL_MOUSEBUTTONUP:
                 if (evt.button.button == SDL_BUTTON_LEFT)
                     mouse_left = false; break;
+            case SDL_KEYDOWN:
+            {
+                switch (evt.key.keysym.sym)
+                {
+                case SDLK_z:
+                    save_image(canvas.rect().w, canvas.rect().h);
+                    break;
+                }
+            } break;
             
             case SDL_MOUSEMOTION:
                 
@@ -210,5 +219,36 @@ void Mango::mainloop()
     SDL_DestroyTexture(select_thickTex);
 
     SDL_Quit();
-    
 }
+
+
+void Mango::save_image(int w, int h)
+{
+    auto hex_to_rgb = [&](uint32_t hex) {
+        SDL_Color color{ 0, 0, 0 };
+        color.r = (hex >> 16) & 0xFF;
+        color.g = (hex >> 8) & 0xFF;
+        color.b = hex & 0xFF;
+
+        return color;
+    };
+
+    cv::Mat image(h, w, CV_8UC4);
+
+    for (int i = 0; i < h; ++i)
+    {
+        for (int j = 0; j < w; ++j)
+        {
+            cv::Vec4b& bgra = image.at<cv::Vec4b>(i, j);
+            SDL_Color col = hex_to_rgb(texbuf[i * w + j]);
+
+            bgra[0] = col.b;
+            bgra[1] = col.g;
+            bgra[2] = col.r;
+            bgra[3] = UCHAR_MAX;
+        }
+    }
+
+    cv::imwrite("out.png", image);
+}
+
