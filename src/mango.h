@@ -13,6 +13,6 @@ public:
     ~Mango();
 
     void mainloop();
-
+    std::string create_file_dialogue();
     void save_image(int w, int h);
 };

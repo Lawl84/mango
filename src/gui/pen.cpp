@@ -52,26 +52,24 @@ void gui::Pen::pen_select_color()
 
     std::vector <gui::Button> buttons = { cancel_button, save_button };
 
-    SDL_Texture* cancel_tex = cancel_button.draw();
-    SDL_Texture* save_tex = save_button.draw();
 
     SDL_Rect slider_r = {
         100,
-        19,
+        17,
         150,
         4
     };
 
     SDL_Rect slider_g = {
         100,
-        109,
+        107,
         150,
         4
     };
 
     SDL_Rect slider_b = {
         100,
-        199,
+        197,
         150,
         4
     };
@@ -97,7 +95,7 @@ void gui::Pen::pen_select_color()
 
     utils::Circle* selected_circle{ nullptr };
 
-    std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 21 }, utils::Circle{ 5, 100, 111 }, utils::Circle{ 5, 100, 201 } };
+    std::vector<utils::Circle> circles{ utils::Circle{ 5, 100, 19 }, utils::Circle{ 5, 100, 109 }, utils::Circle{ 5, 100, 199 } };
 
     SDL_Event evt;
     bool mouse_left = false;
@@ -176,13 +174,8 @@ void gui::Pen::pen_select_color()
         for (auto& button : buttons)
         {
             SDL_SetRenderDrawColor(sm_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
-            SDL_RenderFillRect(sm_rend, &button.rect());
+            button.draw();
         }
-
-        SDL_RenderCopy(sm_rend, save_tex, nullptr, &save_button.rect());
-        SDL_RenderCopy(sm_rend, cancel_tex, nullptr, &cancel_button.rect());
-
-
 
         utils::render_text(sm_rend, { 10, 10, tx * 4, ty }, "Red:", sm_font);
         utils::render_text(sm_rend, { 10, 100, tx * 6, ty }, "Green:", sm_font);
@@ -266,9 +259,6 @@ void gui::Pen::pen_select_thickness()
     gui::Button save_button("  Save  ", { 220, 270 }, select, t_rend, t_font);
 
     std::vector<gui::Button> buttons = { cancel_button, save_button };
-
-    SDL_Texture* cancel_tex = cancel_button.draw();
-    SDL_Texture* save_tex = save_button.draw();
 
     SDL_Rect slider_t = {
         100,
@@ -360,12 +350,8 @@ void gui::Pen::pen_select_thickness()
         for (auto& button : buttons)
         {
             SDL_SetRenderDrawColor(t_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
-            SDL_RenderFillRect(t_rend, &button.rect());
+            button.draw();
         }
-
-        SDL_RenderCopy(t_rend, cancel_tex, nullptr, &cancel_button.rect());
-        SDL_RenderCopy(t_rend, save_tex, nullptr, &save_button.rect());
-
 
         t = ((float)(circles[0].xc() - slider_t.x) / (float)slider_t.w) * 50;
 

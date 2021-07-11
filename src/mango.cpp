@@ -12,11 +12,17 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <filesystem>
 
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR_MAIN 120, 120, 120, 255
 #define BLACK 0, 0, 0, 0
+#define RR button.m_color.r
+#define GG button.m_color.g
+#define BB button.m_color.b
+
+namespace fs = std::filesystem;
 
 Mango::Mango()
     :m_window(nullptr), m_rend(nullptr)
@@ -95,27 +101,23 @@ void Mango::mainloop()
     };
 
     SDL_Point select_thickness_point = {
-        150,
+        120,
         10
     };
 
     SDL_Point save_image_point = {
-        300,
+        273,
         10
     };
 
     gui::Button select_color(" Change Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
     gui::Button select_thickness(" Change Thickness ", select_thickness_point, [&]() { p.pen_select_thickness(); }, m_rend, main_font);
-    gui::Button save_image_button(" Save Image ", save_image_point, [&]() { save_image(canvas.rect().w, canvas.rect().h); }, m_rend, main_font);
+    gui::Button save_image_button(" Save Image ", save_image_point, [&]() { create_file_dialogue(); }, m_rend, main_font);
 
     std::vector<gui::Button> buttons;
     buttons.emplace_back(select_color);
     buttons.emplace_back(select_thickness);
     buttons.emplace_back(save_image_button);
-
-    SDL_Texture* select_colorTex = select_color.draw();
-    SDL_Texture* select_thickTex = select_thickness.draw();
-    SDL_Texture* save_imageTex = save_image_button.draw();
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
@@ -138,31 +140,34 @@ void Mango::mainloop()
                 int mx, my;
                 SDL_GetMouseState(&mx, &my);
                 bool button_click = false;
-
-                for (gui::Button& b : buttons)
+                if (evt.button.button == SDL_BUTTON_LEFT)
                 {
-                    if (b.check_click(mx, my))
+                    for (gui::Button& b : buttons)
                     {
-                        button_click = true;
-                        b.handle_button_click(evt.button);
-                        break;
+                        if (b.check_click(mx, my))
+                        {
+                            button_click = true;
+                            b.handle_button_click(evt.button);
+                            break;
+                        }
+
                     }
 
-                }
+                    if (utils::collides(mx, my, canvas.rect()) && !button_click)
+                    {
+                        mouse_left = true;
+                        int x = mx - canvas.rect().x;
+                        int y = my - canvas.rect().y;
 
-                if (utils::collides(mx, my, canvas.rect()) && !button_click)
-                {
-                    mouse_left = true;
-                    int x = mx - canvas.rect().x;
-                    int y = my - canvas.rect().y;
-
-                    utils::draw_with_thickness(texbuf, p, canvas, x, y, p.thickness());
+                        utils::draw_with_thickness(texbuf, p, canvas, x, y, p.thickness());
+                    }
                 }
             } break;
 
             case SDL_MOUSEBUTTONUP:
                 if (evt.button.button == SDL_BUTTON_LEFT)
                     mouse_left = false; break;
+
             case SDL_KEYDOWN:
             {
                 switch (evt.key.keysym.sym)
@@ -212,13 +217,10 @@ void Mango::mainloop()
 
         for (auto& button : buttons)
         {
-            SDL_SetRenderDrawColor(m_rend, button.m_color.r, button.m_color.g, button.m_color.b, 255);
-            SDL_RenderFillRect(m_rend, &button.rect());
+            SDL_SetRenderDrawColor(m_rend, RR, GG, BB, 255);
+            button.draw();
         }
 
-        SDL_RenderCopy(m_rend, select_colorTex, nullptr, &select_color.rect());
-        SDL_RenderCopy(m_rend, select_thickTex, nullptr, &select_thickness.rect());
-        SDL_RenderCopy(m_rend, save_imageTex, nullptr, &save_image_button.rect());
 
         utils::label(m_rend, "Color: ", main_font, { 10, 750 });
 
@@ -231,11 +233,6 @@ void Mango::mainloop()
 
         SDL_RenderPresent(m_rend);
     }
-
-    SDL_DestroyTexture(select_colorTex);
-    SDL_DestroyTexture(select_thickTex);
-
-    SDL_Quit();
 }
 
 
@@ -265,6 +262,134 @@ void Mango::save_image(int w, int h)
             bgra[3] = UCHAR_MAX;
         }
     }
+}
 
-    cv::imwrite("out.png", image);
+std::string Mango::create_file_dialogue()
+{
+    bool running = true;
+    int file_y = 100;
+    fs::path title_path = fs::current_path();
+
+    SDL_Window* f_window = SDL_CreateWindow(title_path.string().c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer* f_rend = SDL_CreateRenderer(f_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    TTF_Font* f_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 14);
+    SDL_SetWindowGrab(f_window, SDL_TRUE);
+
+    int tx, ty;
+    TTF_SizeText(f_font, "a", &tx, &ty);
+
+    std::vector<gui::Button> buttons;
+
+    gui::Button cancel_button(" Cancel ", { 10, 575 }, [&]() { running = false; }, f_rend, f_font);
+    
+    buttons.emplace_back(cancel_button);
+    fs::path curr_dir = fs::current_path();
+    
+    std::vector<std::string> curr_list = {};
+    std::vector<std::unique_ptr<gui::Button>> file_buttons;
+    std::vector<std::string> list;
+
+    gui::Button move_up_dir(" Move up a directory ", { 300 - tx * 11, 575 }, [&]() { curr_dir = curr_dir.parent_path(); }, f_rend, f_font);
+    buttons.emplace_back(move_up_dir);
+    
+
+    SDL_Event evt;
+
+    while (running)
+    {
+        list = utils::listdir(curr_dir.string());
+
+        file_buttons.clear();
+
+        for (auto& file : list)
+        {
+            std::unique_ptr<gui::Button> button = std::make_unique<gui::Button>(file.c_str(), SDL_Point{ 80, file_y }, [&]() { int a = 5 + 6; }, f_rend, f_font, SDL_Color{ 100, 100, 100 }, SDL_Color{ 255, 255, 255 });
+            file_y += (ty + 10);
+            file_buttons.emplace_back(std::move(button));
+        }
+
+        while (SDL_PollEvent(&evt))
+        {
+
+            switch (evt.type)
+            {
+                case SDL_MOUSEBUTTONDOWN:
+                {
+                    for (auto& button : buttons)
+                    {
+                        button.handle_button_click(evt.button);
+                    }
+                }
+
+                case SDL_MOUSEMOTION:
+                {
+                    int x, y;
+                    SDL_GetMouseState(&x, &y);
+
+                    for (auto& button : buttons)
+                    {
+                        if (utils::collides(x, y, button.rect()))
+                        {
+                            button.m_color = { 201, 199, 199 };
+                        }
+
+                        else
+                        {
+                            button.m_color = { 255, 255, 255 };
+                        }
+                    }
+
+                    for (auto& button : file_buttons)
+                    {
+                        if (utils::collides(x, y, button->rect()))
+                        {
+                            button->m_color = { 173, 173, 173 };
+                        }
+
+                        else
+                        {
+                            button->m_color = { 100, 100, 100 };
+                        }
+                    }
+                }
+            }
+        }
+
+        SDL_RenderClear(f_rend);
+
+        for (auto& button : buttons)
+        {
+            SDL_SetRenderDrawColor(f_rend, RR, GG, BB, 255);
+            button.draw();
+        }
+
+        curr_list = list;
+
+        file_y = 100;
+
+        for (auto& button : file_buttons)
+        {
+            SDL_SetRenderDrawColor(f_rend, button->m_color.r, button->m_color.g, button->m_color.b, 255);
+            if (button->rect().y < 550)
+            {
+                button->draw();
+            }
+            
+        }
+
+        SDL_SetRenderDrawColor(f_rend, 100, 100, 100, 255);
+        SDL_RenderPresent(f_rend);
+    }
+
+    for (auto& button : buttons)
+    {
+        SDL_DestroyTexture(button.tex());
+    }
+
+    SDL_DestroyRenderer(f_rend);
+    SDL_DestroyWindow(f_window);
+
+    
+
+    return "Lol";
 }

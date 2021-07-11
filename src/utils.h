@@ -11,6 +11,9 @@
 #include <SDL_ttf.h>
 #include <iostream>
 #include <algorithm>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #define HEXPEN hex(pen.color())
 
@@ -65,5 +68,7 @@ namespace utils
     
     void draw_with_thickness(uint32_t* arr, gui::Pen& pen, gui::Canvas& canvas, int xc, int yc, int r);
 
-    void draw_circle(SDL_Renderer* rend, int xc, int yc, int r);
+    void draw_circle(SDL_Renderer* rend, int xc, int yc, int r); 
+
+    std::vector<std::string> listdir(std::string path);
 }

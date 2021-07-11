@@ -249,3 +249,12 @@ void utils::draw_circle(SDL_Renderer* rend, int xc, int yc, int r)
     }
 }
 
+std::vector<std::string> utils::listdir(std::string path)
+{
+    std::vector<std::string> list;
+    for (const auto& entry : fs::directory_iterator(path))
+        list.emplace_back(entry.path().filename().string());
+
+    return list;
+}
+
