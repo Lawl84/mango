@@ -13,7 +13,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <filesystem>
-#include "gui/filedisplay.h"
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR_MAIN 120, 120, 120, 255
