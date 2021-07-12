@@ -52,7 +52,7 @@ bool gui::Button::handle_button_click(const SDL_MouseButtonEvent& btn)
     return check_click(btn.x, btn.y);
 }
 
-gui::Button::~Button()
-{
-    SDL_DestroyTexture(m_tex);
-}
+//gui::Button::~Button()
+//{
+//    SDL_DestroyTexture(m_tex);
+//}

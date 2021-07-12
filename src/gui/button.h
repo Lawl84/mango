@@ -25,7 +25,9 @@ namespace gui
         void call() { m_func(); }
         SDL_Rect& rect() { return m_rect; }
         SDL_Texture* tex() { return m_tex; }
-        ~Button();
+        void edit(int x, int y) { m_rect.x = x; m_rect.y = y; }
+        const char* text() { return m_title; };
+        /*~Button();*/
     };
 
 };

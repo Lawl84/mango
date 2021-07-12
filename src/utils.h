@@ -52,6 +52,11 @@ namespace utils
         int m_yc;
     };
 
+    struct FileTexture
+    {
+        SDL_Texture* tex;
+        SDL_Rect rect;
+    };
     bool collides(int mx, int my, const SDL_Rect& rect);
 
     uint32_t hex(SDL_Color color);
@@ -71,4 +76,7 @@ namespace utils
     void draw_circle(SDL_Renderer* rend, int xc, int yc, int r); 
 
     std::vector<std::string> listdir(std::string path);
+
+    std::vector<int> generate_file_button_locations(int file_count, int tx);
+
 }

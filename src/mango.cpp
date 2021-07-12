@@ -13,7 +13,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <filesystem>
-
+#include "gui/filedisplay.h"
 
 #define WHITE 255, 255, 255, 255
 #define BG_COLOR_MAIN 120, 120, 120, 255
@@ -76,7 +76,7 @@ void Mango::mainloop()
     SDL_Texture* canv_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, canvas.rect().w, canvas.rect().h);
 
     SDL_Color user_main_color = { 0, 0, 0 };
-    SDL_Color colorbuf;
+    std::string file_save_path;
 
     SDL_Rect color_square = {
         70,
@@ -112,7 +112,7 @@ void Mango::mainloop()
 
     gui::Button select_color(" Change Color ", select_color_point, [&]() { p.pen_select_color(); }, m_rend, main_font);
     gui::Button select_thickness(" Change Thickness ", select_thickness_point, [&]() { p.pen_select_thickness(); }, m_rend, main_font);
-    gui::Button save_image_button(" Save Image ", save_image_point, [&]() { create_file_dialogue(); }, m_rend, main_font);
+    gui::Button save_image_button(" Save Image ", save_image_point, [&]() { file_save_path = save_image_dialogue(canvas.rect().w, canvas.rect().h); }, m_rend, main_font);
 
     std::vector<gui::Button> buttons;
     buttons.emplace_back(select_color);
@@ -168,15 +168,6 @@ void Mango::mainloop()
                 if (evt.button.button == SDL_BUTTON_LEFT)
                     mouse_left = false; break;
 
-            case SDL_KEYDOWN:
-            {
-                switch (evt.key.keysym.sym)
-                {
-                case SDLK_z:
-                    save_image(canvas.rect().w, canvas.rect().h);
-                    break;
-                }
-            } break;
 
             case SDL_MOUSEMOTION:
 
@@ -236,44 +227,20 @@ void Mango::mainloop()
 }
 
 
-void Mango::save_image(int w, int h)
-{
-    auto hex_to_rgb = [&](uint32_t hex) {
-        SDL_Color color{ 0, 0, 0 };
-        color.r = (hex >> 16) & 0xFF;
-        color.g = (hex >> 8) & 0xFF;
-        color.b = hex & 0xFF;
 
-        return color;
-    };
-
-    cv::Mat image(h, w, CV_8UC4);
-
-    for (int i = 0; i < h; ++i)
-    {
-        for (int j = 0; j < w; ++j)
-        {
-            cv::Vec4b& bgra = image.at<cv::Vec4b>(i, j);
-            SDL_Color col = hex_to_rgb(texbuf[i * w + j]);
-
-            bgra[0] = col.b;
-            bgra[1] = col.g;
-            bgra[2] = col.r;
-            bgra[3] = UCHAR_MAX;
-        }
-    }
-}
-
-std::string Mango::create_file_dialogue()
+std::string Mango::save_image_dialogue(int w, int h)
 {
     bool running = true;
-    int file_y = 100;
+
     fs::path title_path = fs::current_path();
 
-    SDL_Window* f_window = SDL_CreateWindow(title_path.string().c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Window* f_window = SDL_CreateWindow("Save File", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
     SDL_Renderer* f_rend = SDL_CreateRenderer(f_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     TTF_Font* f_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 14);
     SDL_SetWindowGrab(f_window, SDL_TRUE);
+
+    SDL_Texture* folder_icon = IMG_LoadTexture(f_rend, "res/open-folder.png");
+    SDL_Texture* file_icon = IMG_LoadTexture(f_rend, "res/file.png");
 
     int tx, ty;
     TTF_SizeText(f_font, "a", &tx, &ty);
@@ -286,12 +253,48 @@ std::string Mango::create_file_dialogue()
     fs::path curr_dir = fs::current_path();
     
     std::vector<std::string> curr_list = {};
-    std::vector<std::unique_ptr<gui::Button>> file_buttons;
+    std::vector<std::pair<fs::path, SDL_Rect>> file_buttons;
     std::vector<std::string> list;
+    std::vector<utils::FileTexture> file_texs;
 
-    gui::Button move_up_dir(" Move up a directory ", { 300 - tx * 11, 575 }, [&]() { curr_dir = curr_dir.parent_path(); }, f_rend, f_font);
+    std::string file_save_path = "";
+
+    gui::Button move_up_dir(" Move up a directory ", { 400 - tx * 11, 575 }, [&]() { if (fs::exists(curr_dir)) curr_dir = curr_dir.parent_path(); }, f_rend, f_font);
+
+    gui::Button save_file("  Save  ", { 790 - 8 * tx, 575 }, [&]() {
+        file_save_path = curr_dir.string();
+        running = false;
+
+        auto hex_to_rgb = [&](uint32_t hex) {
+            SDL_Color color{ 0, 0, 0 };
+            color.r = (hex >> 16) & 0xFF;
+            color.g = (hex >> 8) & 0xFF;
+            color.b = hex & 0xFF;
+
+            return color;
+        };
+
+        cv::Mat image(h, w, CV_8UC4);
+
+        for (int i = 0; i < h; ++i)
+        {
+            for (int j = 0; j < w; ++j)
+            {
+                cv::Vec4b& bgra = image.at<cv::Vec4b>(i, j);
+                SDL_Color col = hex_to_rgb(texbuf[i * w + j]);
+
+                bgra[0] = col.b;
+                bgra[1] = col.g;
+                bgra[2] = col.r;
+                bgra[3] = UCHAR_MAX;
+            }
+        }
+
+        cv::imwrite(curr_dir.string() + "\\out.png", image); }, f_rend, f_font);
+
+
     buttons.emplace_back(move_up_dir);
-    
+    buttons.emplace_back(save_file);
 
     SDL_Event evt;
 
@@ -299,14 +302,8 @@ std::string Mango::create_file_dialogue()
     {
         list = utils::listdir(curr_dir.string());
 
-        file_buttons.clear();
-
-        for (auto& file : list)
-        {
-            std::unique_ptr<gui::Button> button = std::make_unique<gui::Button>(file.c_str(), SDL_Point{ 80, file_y }, [&]() { int a = 5 + 6; }, f_rend, f_font, SDL_Color{ 100, 100, 100 }, SDL_Color{ 255, 255, 255 });
-            file_y += (ty + 10);
-            file_buttons.emplace_back(std::move(button));
-        }
+        std::vector<int> file_y_locations = utils::generate_file_button_locations(list.size(), ty);
+        
 
         while (SDL_PollEvent(&evt))
         {
@@ -319,43 +316,141 @@ std::string Mango::create_file_dialogue()
                     {
                         button.handle_button_click(evt.button);
                     }
+
+                    if (evt.button.clicks == 2)
+                    {
+                        int x, y;
+                        SDL_GetMouseState(&x, &y);
+
+                        for (auto& button : file_buttons)
+                        {
+                            if (utils::collides(x, y, button.second) && fs::is_directory(button.first))
+                            {
+                                curr_dir /= button.first;
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                case SDL_MOUSEMOTION:
+                case SDL_MOUSEWHEEL:
                 {
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-
-                    for (auto& button : buttons)
+                    if (evt.wheel.y < 0) // scroll down
                     {
-                        if (utils::collides(x, y, button.rect()))
+                        bool can_adjust = file_buttons[file_buttons.size() - 1].second.y + file_buttons[file_buttons.size() - 1].second.w > 475;
+                        if (can_adjust)
                         {
-                            button.m_color = { 201, 199, 199 };
-                        }
+                            for (auto& button : file_buttons)
+                            {
+                                button.second.y -= 25;
+                            }
 
-                        else
-                        {
-                            button.m_color = { 255, 255, 255 };
+                            for (int i = 0; i < file_y_locations.size(); i++)
+                            {
+                                file_y_locations[i] -= 25;
+                                file_texs[i].rect.y -= 25;
+                            }
+
                         }
                     }
 
-                    for (auto& button : file_buttons)
-                    {
-                        if (utils::collides(x, y, button->rect()))
-                        {
-                            button->m_color = { 173, 173, 173 };
-                        }
 
-                        else
+                    if (evt.wheel.y > 0) // scroll up
+                    {
+                        bool can_adjust = file_buttons[0].second.y < 100;
+
+                        if (can_adjust)
                         {
-                            button->m_color = { 100, 100, 100 };
+                            for (auto& button : file_buttons)
+                            {
+                                button.second.y += 25;
+                            }
+
+                            for (int i = 0; i < file_y_locations.size(); i++)
+                            {
+                                file_y_locations[i] += 25;
+                                file_texs[i].rect.y += 25;
+                            }
                         }
                     }
                 }
             }
         }
 
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+
+        for (auto& button : buttons)
+        {
+            if (utils::collides(x, y, button.rect()))
+            {
+                button.m_color = { 201, 199, 199 };
+            }
+
+            else
+            {
+                button.m_color = { 255, 255, 255 };
+            }
+        }
+
+        
+
+        if (list != curr_list)
+        {
+            file_buttons.clear();
+            file_texs.clear();
+        }
+
+        if (list != curr_list)
+        {
+            for (int i = 0; i < list.size(); i++)
+            {
+                std::string word = list[i];
+                std::pair<fs::path, SDL_Rect> pair(fs::path(curr_dir.string() + "\\" + word), { 60, file_y_locations[i], 250, ty });
+                file_buttons.emplace_back(pair);
+
+                utils::FileTexture tex;
+                tex.tex = fs::is_directory(fs::path(curr_dir.string() + "\\" + word)) ? folder_icon : file_icon;
+                tex.rect = { 60, file_y_locations[i], ty, ty };
+                file_texs.emplace_back(tex);
+
+            }
+        }
+
         SDL_RenderClear(f_rend);
+
+        for (auto& button : file_buttons)
+        {
+            if (utils::collides(x, y, button.second))
+            {
+                SDL_SetRenderDrawColor(f_rend, 170, 170, 170, 255);
+            }
+
+            else
+            {
+                SDL_SetRenderDrawColor(f_rend, 100, 100, 100, 255);
+            }
+
+            SDL_RenderFillRect(f_rend, &button.second);
+        }
+
+        SDL_SetRenderDrawColor(f_rend, 50, 50, 50, 255);
+        SDL_Rect lowerRect = {
+            0,
+            495,
+            800,
+            105
+        };
+
+        
+
+        SDL_RenderFillRect(f_rend, &lowerRect);
+
+        std::stringstream ss;
+        ss << "Current Path: " << curr_dir.string();
+        utils::label(f_rend, ss.str().c_str(), f_font, { 25, 510 });
+
+        
 
         for (auto& button : buttons)
         {
@@ -365,16 +460,20 @@ std::string Mango::create_file_dialogue()
 
         curr_list = list;
 
-        file_y = 100;
-
         for (auto& button : file_buttons)
         {
-            SDL_SetRenderDrawColor(f_rend, button->m_color.r, button->m_color.g, button->m_color.b, 255);
-            if (button->rect().y < 550)
+            if (button.second.y < 475 && button.second.y > 0)
             {
-                button->draw();
+                utils::label(f_rend, button.first.filename().string().c_str(), f_font, { button.second.x + 20, button.second.y });
             }
-            
+        }
+
+        for (int i = 0; i < file_texs.size(); i++)
+        {
+            if (file_texs[i].rect.y < 475 && file_texs[i].rect.y > 0)
+            {
+                SDL_RenderCopy(f_rend, file_texs[i].tex, nullptr, &file_texs[i].rect);
+            }        
         }
 
         SDL_SetRenderDrawColor(f_rend, 100, 100, 100, 255);
@@ -384,12 +483,13 @@ std::string Mango::create_file_dialogue()
     for (auto& button : buttons)
     {
         SDL_DestroyTexture(button.tex());
-    }
+    } 
+
 
     SDL_DestroyRenderer(f_rend);
     SDL_DestroyWindow(f_window);
 
     
 
-    return "Lol";
+    return file_save_path;
 }

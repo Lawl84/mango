@@ -258,3 +258,16 @@ std::vector<std::string> utils::listdir(std::string path)
     return list;
 }
 
+
+std::vector<int> utils::generate_file_button_locations(int file_count, int ty)
+{
+    std::vector<int> v;
+    int file_y = 100;
+    for (int i = 0; i < file_count; i++)
+    {
+        v.emplace_back(file_y);
+        file_y += ty;
+    }
+    
+    return v;
+}
