@@ -242,7 +242,7 @@ std::string Mango::save_image_dialogue(int w, int h)
     TTF_Font* f_font = TTF_OpenFont("res/CascadiaCode-Regular-VTT.ttf", 14);
     SDL_SetWindowGrab(f_window, SDL_TRUE);
 
-    SDL_Texture* folder_icon = IMG_LoadTexture(f_rend, "res/open-folder.png");
+    SDL_Texture* folder_icon = IMG_LoadTexture(f_rend, "res/closed-folder.png");
     SDL_Texture* file_icon = IMG_LoadTexture(f_rend, "res/file.png");
 
     int tx, ty;
