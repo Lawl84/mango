@@ -293,7 +293,7 @@ std::string Mango::save_image_dialogue(int w, int h)
             }
         }
 
-        cv::imwrite(curr_dir.string() + "\\out.png", image); }, f_rend, f_font);
+        cv::imwrite((curr_dir / fs::path("out.png")).string(), image); }, f_rend, f_font);
 
 
     buttons.emplace_back(move_up_dir);
@@ -409,11 +409,11 @@ std::string Mango::save_image_dialogue(int w, int h)
             for (int i = 0; i < list.size(); i++)
             {
                 std::string word = list[i];
-                std::pair<fs::path, SDL_Rect> pair(fs::path(curr_dir.string() + "\\" + word), { 60, file_y_locations[i], 250, ty });
+                std::pair<fs::path, SDL_Rect> pair(fs::path(curr_dir / word), { 60, file_y_locations[i], 250, ty });
                 file_buttons.emplace_back(pair);
 
                 utils::FileTexture tex;
-                tex.tex = fs::is_directory(fs::path(curr_dir.string() + "\\" + word)) ? folder_icon : file_icon;
+                tex.tex = fs::is_directory(fs::path(curr_dir / word)) ? folder_icon : file_icon;
                 tex.rect = { 60, file_y_locations[i], ty, ty };
                 file_texs.emplace_back(tex);
 
