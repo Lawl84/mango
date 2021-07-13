@@ -73,7 +73,7 @@ void Mango::mainloop()
 
     canvas.center(window_w, window_h);
     SDL_Texture* canv_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, canvas.rect().w, canvas.rect().h);
-
+    
     SDL_Color user_main_color = { 0, 0, 0 };
     std::string file_save_path;
 
@@ -120,6 +120,10 @@ void Mango::mainloop()
 
     texbuf = new uint32_t[canvas.rect().w * canvas.rect().h];
 
+    for (int i = 0; i < canvas.rect().w * canvas.rect().h; i++)
+    {
+        texbuf[i] = 0xFFFFFF;
+    }
     while (running)
     {
         SDL_GetWindowSize(m_window, &window_w, &window_h);
